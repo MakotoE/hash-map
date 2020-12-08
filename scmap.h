@@ -4,6 +4,7 @@
 #include <vector>
 #include <ostream>
 #include <tuple>
+#include <optional>
 
 /// Separate chaining
 template <class K, class V>
@@ -81,18 +82,28 @@ public:
 		++_size;
 	}
 
-	Iterator get(K key) const {
-		if (_buckets.size() > 0) {
-			size_t hash = std::hash<K>{}(key);
-			auto& bucket = _buckets[hash % _buckets.size()];
-			for (size_t i = 0; i < bucket.size(); ++i) {
-				if (bucket[i].first == key) {
-					return Iterator(*this, hash % _buckets.size(), i);
-				}
-			}
+	Iterator get(const K& key) const {
+		auto position = find(key);
+		if (position.has_value()) {
+			auto pos = position.value();
+			return Iterator(*this, pos.curr_bucket, pos.index_in_bucket);
 		}
 
 		return end();
+	}
+
+	std::optional<V> remove(const K& key) {
+		auto position = find(key);
+		if (position.has_value()) {
+			auto pos = position.value();
+			auto tmp = std::move(std::get<1>(_buckets[pos.curr_bucket][pos.index_in_bucket]));
+			auto iter = _buckets[pos.curr_bucket].begin() + pos.index_in_bucket;
+			_buckets[pos.curr_bucket].erase(iter);
+			--_size;
+			return tmp;
+		}
+
+		return {};
 	}
 
 	size_t size() const {
@@ -135,6 +146,25 @@ public:
 private:
 	std::vector<std::vector<std::pair<K, V>>> _buckets;
 	size_t _size;
+
+	struct Position {
+		size_t curr_bucket;
+		size_t index_in_bucket;
+	};
+
+	std::optional<Position> find(const K& key) const {
+		if (_buckets.size() > 0) {
+			size_t hash = std::hash<K>{}(key);
+			auto& bucket = _buckets[hash % _buckets.size()];
+			for (size_t i = 0; i < bucket.size(); ++i) {
+				if (bucket[i].first == key) {
+					return {{hash % _buckets.size(), i}};
+				}
+			}
+		}
+
+		return {};
+	}
 };
 
 #endif //HASH_MAP__SEPARATE_H_
