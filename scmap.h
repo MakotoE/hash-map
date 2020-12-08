@@ -12,7 +12,7 @@ class SCMap {
 public:
 	class Iterator {
 	public:
-		Iterator(const SCMap& map)
+		explicit Iterator(const SCMap& map)
 			: _map(map)
 			, _curr_bucket(0)
 			, _index_in_bucket(0) {}
@@ -96,7 +96,7 @@ public:
 		auto position = find(key);
 		if (position.has_value()) {
 			auto pos = position.value();
-			auto tmp = std::move(std::get<1>(_buckets[pos.curr_bucket][pos.index_in_bucket]));
+			auto tmp = std::move(_buckets[pos.curr_bucket][pos.index_in_bucket].second);
 			auto iter = _buckets[pos.curr_bucket].begin() + pos.index_in_bucket;
 			_buckets[pos.curr_bucket].erase(iter);
 			--_size;
@@ -111,18 +111,22 @@ public:
 	}
 
 	void reserve(size_t size) {
-		if (_buckets.size() < size * 75 / 100 + 1) {
-			_buckets.resize(size * 75 / 100 + 1);
+		if (_buckets.size() == 0) {
+			_buckets.resize(1);
+		}
+
+		if (_buckets.size() * 75 / 100 < size + 1) {
+			_buckets.resize(_buckets.size() * 2);
 		}
 	}
 
 	Iterator begin() const {
-		return {*this};
+		return Iterator(*this);
 	}
 
 	Iterator end() const {
 		if (_buckets.size() == 0) {
-			return {*this};
+			return Iterator(*this);
 		}
 		return {*this, _buckets.size(), 0};
 	}
