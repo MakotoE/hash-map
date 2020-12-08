@@ -6,5 +6,5 @@ add_compile_options(-Wall -Wextra -pedantic)
 
 add_subdirectory(tests)
 
-add_library(hashmap STATIC separate.h)
+add_library(hashmap STATIC scmap.h)
 set_target_properties(hashmap PROPERTIES LINKER_LANGUAGE CXX)

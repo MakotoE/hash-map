@@ -1,4 +1,4 @@
-#include "../separate.h"
+#include "../scmap.h"
 #include <gtest/gtest.h>
 
 TEST(SCMap, insert) {
