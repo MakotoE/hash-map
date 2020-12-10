@@ -89,14 +89,10 @@ public:
 		return _size;
 	}
 
-	void reserve(size_t size) {
-		if (_array.size() == 0) {
-			_array.resize(1);
-		}
-
+	void reserve(size_t capacity) {
 		// Having less than half filled prevents infinite loop in quadratic probing
-		if (_array.size() <= size * 2) {
-			_array.resize(_array.size() * 2);
+		if (_array.size() <= capacity * 2) {
+			_array.resize(capacity * 2);
 		}
 	}
 
